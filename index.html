@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plot the Point Game</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    #graph { border: 1px solid #333; margin: 20px auto; display: block; background: #fafafa; }
+    #message { font-size: 1.2em; margin: 10px; }
+    #score { font-size: 1.1em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Plot the Point Game</h1>
+  <div id="point-info"></div>
+  <canvas id="graph" width="400" height="400"></canvas>
+  <div id="message"></div>
+  <div id="score">Score: <span id="correct">0</span> / <span id="attempts">0</span></div>
+  <script>
+    const canvas = document.getElementById('graph');
+    const ctx = canvas.getContext('2d');
+    const size = 400;
+    const axisMin = -10;
+    const axisMax = 10;
+    const pointRadius = 7;
+    let target = {x: 0, y: 0};
+    let correct = 0;
+    let attempts = 0;
+
+    function drawGraph() {
+      ctx.clearRect(0, 0, size, size);
+      // Draw axes
+      ctx.strokeStyle = '#333';
+      ctx.beginPath();
+      ctx.moveTo(0, size/2); ctx.lineTo(size, size/2); // X axis
+      ctx.moveTo(size/2, 0); ctx.lineTo(size/2, size); // Y axis
+      ctx.stroke();
+      // Draw grid
+      ctx.strokeStyle = '#ccc';
+      for (let i = axisMin; i <= axisMax; i++) {
+        if (i !== 0) {
+          // Vertical grid
+          let x = mapX(i);
+          ctx.beginPath();
+          ctx.moveTo(x, 0); ctx.lineTo(x, size);
+          ctx.stroke();
+          // Horizontal grid
+          let y = mapY(i);
+          ctx.beginPath();
+          ctx.moveTo(0, y); ctx.lineTo(size, y);
+          ctx.stroke();
+        }
+      }
+      // Draw axis labels
+      ctx.fillStyle = '#333';
+      ctx.font = '12px Arial';
+      for (let i = axisMin; i <= axisMax; i++) {
+        if (i % 2 === 0) {
+          ctx.fillText(i, mapX(i)-10, size/2+15); // X labels
+          ctx.fillText(i, size/2+5, mapY(i)+5);   // Y labels
+        }
+      }
+    }
+
+    function mapX(x) {
+      return ((x - axisMin) / (axisMax - axisMin)) * size;
+    }
+    function mapY(y) {
+      return size - ((y - axisMin) / (axisMax - axisMin)) * size;
+    }
+
+    function newTarget() {
+      target.x = Math.floor(Math.random() * 21) - 10;
+      target.y = Math.floor(Math.random() * 21) - 10;
+      document.getElementById('point-info').textContent = `Plot: (${target.x}, ${target.y})`;
+      drawGraph();
+    }
+
+    function updateScore() {
+      document.getElementById('correct').textContent = correct;
+      document.getElementById('attempts').textContent = attempts;
+    }
+
+    canvas.addEventListener('click', function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      // Find nearest integer point
+      const clickedX = Math.round(axisMin + (x/size)*(axisMax-axisMin));
+      const clickedY = Math.round(axisMin + ((size-y)/size)*(axisMax-axisMin));
+      attempts++;
+      if (clickedX === target.x && clickedY === target.y) {
+        correct++;
+        document.getElementById('message').textContent = 'Correct!';
+        setTimeout(() => {
+          document.getElementById('message').textContent = '';
+          newTarget();
+        }, 800);
+      } else {
+        document.getElementById('message').textContent = 'Incorrect, try again.';
+      }
+      updateScore();
+    });
+
+    // Initial setup
+    drawGraph();
+    newTarget();
+    updateScore();
+  </script>
+</body>
+</html>
